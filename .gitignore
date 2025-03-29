@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Logs
 logs
 *.log
@@ -134,3 +135,41 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+=======
+# Node.js
+node_modules/
+package-lock.json
+npm-debug.log*
+
+# Python (for flask-api or venv usage)
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.env
+
+# Environment variables
+.env
+
+# Logs
+logs/
+*.log
+
+# VSCode and other editor configs
+.vscode/
+.idea/
+
+# OS system files
+.DS_Store
+Thumbs.db
+
+# Docker artifacts
+*.local
+docker-compose.override.yml
+
+# Build/Cache
+.cache/
+dist/
+build/
+>>>>>>> 2ed5752 (Initial commit - E-Commerce with ML project)
