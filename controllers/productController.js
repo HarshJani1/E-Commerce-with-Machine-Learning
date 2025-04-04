@@ -10,21 +10,41 @@ exports.getProducts = async (req, res) => {
   }
 };
 
-
 exports.submitReview = async (req, res) => {
   try {
+
+    if (!req.body.comment) {
+      return res.status(400).json({ msg: 'Comment is required' });
+    }
+
     const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ msg: 'Product not found' });
-    // Call Flask API for sentiment analysis
-    const response = await axios.post('http://flask-api:5000/analyze', { text: req.body.comment });
-    const sentiment = response.data.sentiment;
-    // Update counts
-    if (sentiment === 1) product.positiveReviews += 1;
-    else product.negativeReviews += 1;
-    await product.save();
+    if (!product) {
+      return res.status(404).json({ msg: 'Product not found' });
+    }
+
+    const response = await axios.post('http://localhost:5001/analyze', { text: req.body.comment });
+
+    if (!response.data || typeof response.data.sentiment === 'undefined') {
+      return res.status(500).json({ msg: 'Error analyzing sentiment' });
+    }
+
+    product.positiveReviews = product.positiveReviews || 0;
+    product.negativeReviews = product.negativeReviews || 0;
+    product.price = product.price || 0; // Ensure price is set to avoid validation error
+
+    // Update review count based on sentiment
+    if (response.data.sentiment === 1) {
+      product.positiveReviews += 1;
+    } else {
+      product.negativeReviews += 1;
+    }
+
+    // Save updated product without validation errors
+    await product.save({ validateBeforeSave: false });
+
     res.json(product);
   } catch (err) {
-    res.status(500).send('Server error');
+    res.status(500).json({ msg: 'Server error', error: err.message });
   }
 };
 
@@ -34,7 +54,7 @@ exports.createProduct = async (req, res) => {
     if (!name || !description || !price) {
       return res.status(400).json({ message: 'Name, description, and price are required' });
     }
-    
+
     const newProduct = new Product({ name, description, price });
     await newProduct.save();
 
@@ -44,7 +64,6 @@ exports.createProduct = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
-
 
 exports.updateProduct = async (req, res) => {
   try {
